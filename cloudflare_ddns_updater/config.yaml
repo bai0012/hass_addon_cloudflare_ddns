@@ -1,6 +1,6 @@
 name: "Cloudflare DDNS Updater"
 description: "Cloudflare DDNS Updater"
-version: "1.1.0"
+version: "1.2.0"
 slug: "cloudflare_ddns_updater"
 init: false
 arch:
@@ -13,12 +13,14 @@ startup: services
 
 options:
   ddns_protocol: "both"
+  ip_detection_method: "web"
   check_interval: 300
   retry_interval: 60
   config: []
 
 schema:
   ddns_protocol: list(ipv4 only|ipv6 only|both)
+  ip_detection_method: list(web|dns)
   check_interval: int(30,86400)
   retry_interval: int(5,86400)
   config:

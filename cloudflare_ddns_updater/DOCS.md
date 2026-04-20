@@ -10,6 +10,7 @@ This addon is used to update DDNS records on Cloudflare.
 
 ```yaml
 ddns_protocol: both
+ip_detection_method: web
 check_interval: 300
 retry_interval: 60
 config:
@@ -27,6 +28,12 @@ Controls which IP protocol(s) the add-on updates:
 - `ipv4 only`
 - `ipv6 only`
 - `both`
+
+### `ip_detection_method`
+Controls how public IP is detected:
+
+- `web`: query public web services (`api.ipify.org` / `api6.ipify.org`)
+- `dns`: query OpenDNS with `dig` (recommended if your network uses transparent proxy)
 
 ### `check_interval`
 How often (in seconds) the add-on checks whether Cloudflare records need to be updated.

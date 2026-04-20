@@ -4,6 +4,7 @@ CONFIG="/etc/ddclient/ddclient.conf"
 
 DDCLIENT_CONFIG=$(bashio::config 'config')
 DDNS_PROTOCOL=$(bashio::config 'ddns_protocol')
+IP_DETECTION_METHOD=$(bashio::config 'ip_detection_method')
 CHECK_INTERVAL=$(bashio::config 'check_interval')
 RETRY_INTERVAL=$(bashio::config 'retry_interval')
 
@@ -17,26 +18,46 @@ ssl=yes                                     # use ssl support
 EOL
 
 # Configure IP detection mode
+case "$IP_DETECTION_METHOD" in
+  "web")
+    IPV4_USE="usev4=webv4"
+    IPV4_SOURCE="webv4=api.ipify.org"
+    IPV6_USE="usev6=webv6"
+    IPV6_SOURCE="webv6=api6.ipify.org"
+    ;;
+  "dns")
+    # DNS-based detection helps avoid incorrect results in transparent-proxy environments.
+    IPV4_USE="usev4=cmdv4"
+    IPV4_SOURCE="cmdv4='dig +short myip.opendns.com @resolver1.opendns.com'"
+    IPV6_USE="usev6=cmdv6"
+    IPV6_SOURCE="cmdv6='dig +short -6 myip.opendns.com aaaa @resolver1.ipv6-sandbox.opendns.com'"
+    ;;
+  *)
+    bashio::log.fatal "Unsupported ip_detection_method: ${IP_DETECTION_METHOD}"
+    exit 1
+    ;;
+esac
+
 case "$DDNS_PROTOCOL" in
   "ipv4 only")
-    cat >> "$CONFIG" <<EOL
-usev4=webv4
-webv4=api.ipify.org
-EOL
+    {
+      echo "$IPV4_USE"
+      echo "$IPV4_SOURCE"
+    } >> "$CONFIG"
     ;;
   "ipv6 only")
-    cat >> "$CONFIG" <<EOL
-usev6=webv6
-webv6=api6.ipify.org
-EOL
+    {
+      echo "$IPV6_USE"
+      echo "$IPV6_SOURCE"
+    } >> "$CONFIG"
     ;;
   "both")
-    cat >> "$CONFIG" <<EOL
-usev4=webv4
-webv4=api.ipify.org
-usev6=webv6
-webv6=api6.ipify.org
-EOL
+    {
+      echo "$IPV4_USE"
+      echo "$IPV4_SOURCE"
+      echo "$IPV6_USE"
+      echo "$IPV6_SOURCE"
+    } >> "$CONFIG"
     ;;
   *)
     bashio::log.fatal "Unsupported ddns_protocol: ${DDNS_PROTOCOL}"
